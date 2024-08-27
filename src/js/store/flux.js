@@ -1,6 +1,8 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
+			contactList: [
+			],
 			demo: [
 				{
 					title: "FIRST",
@@ -19,11 +21,70 @@ const getState = ({ getStore, getActions, setStore }) => {
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
+
+			loadContacts: async () => {
+				const response = await fetch("https://playground.4geeks.com/contact/agendas/agendaLuis",{
+					method: "GET"
+				})
+				const data = await response.json();
+				setStore({contactList: data.contacts})
 			},
+
+			createContact: async (newContact) => {
+				console.log(newContact)
+				try {
+					const response = await fetch("https://playground.4geeks.com/contact/agendas/agendaLuis/contacts",{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify(newContact)
+					})
+					if(!response.ok){
+						throw new Error("There has been an error creating this contact, please check again") 
+					}
+					getActions().loadContacts();
+				}
+				catch(error){
+					console.error("There has been an error creating this contact",error)
+				}
+			},
+
+
+			deleteContact: async (id) => {
+				try {
+				const response = await fetch("https://playground.4geeks.com/contact/agendas/agendaLuis/contacts/" + id,{
+					method: "DELETE",
+				})
+				if(!response.ok){
+					throw new Error("There has been an error creating this contact, please check again") 
+				}
+				getActions().loadContacts();
+				}
+				catch (error){
+					console.error("There has been an error deleting this contact",error)
+				}
+			},
+
+			updateContact: async (contact) => {
+				try{
+					const response = await fetch("https://playground.4geeks.com/contact/agendas/agendaLuis/contacts/" + contact.id,{
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify(contact)
+					})
+					if (!response.ok){
+						throw new Error("There has been an error updating this contact, please check again")
+					}
+					getActions().loadContacts();
+				}
+				catch (error) {
+					console.log("There has been an error updating this contact",error)
+				}
+			},
+
 			changeColor: (index, color) => {
 				//get the store
 				const store = getStore();
